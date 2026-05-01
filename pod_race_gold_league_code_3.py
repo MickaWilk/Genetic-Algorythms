@@ -48,17 +48,7 @@ def go_next_checkpoint(map_memory, next_cp_id):
 
 
 def calculate_distance_threshold(speed):
-    distance_threshold = speed * THRESHOLD_COEF
-    if distance_threshold > MAX_DISTANCE:
-        distance_threshold = MAX_DISTANCE
-    return distance_threshold
-
-
-def is_opponent_close(pod_x, pod_y, opponent_data):
-    for j in range(2):  # Pour chaque adversaire
-        if distance(pod_x, pod_y, opponent_data[j][0], opponent_data[j][1]) < 1000:
-            return True
-    return False
+    return speed * THRESHOLD_COEF
 
 
 # Initialisation
@@ -74,9 +64,9 @@ checkpoint_radius = 600
 max_speed = 961
 while_count = 0
 
-OFFSET_COEF = 3000
-MAX_DISTANCE = 2500
-THRESHOLD_COEF = 4
+OFFSET_COEF = 2350
+MAX_DISTANCE = 3000
+THRESHOLD_COEF = 4.55
 BOOST_WAIT = 15
 
 # Boucle principale
@@ -114,9 +104,9 @@ while True:
             print(f"NEXT CHECKPOINT UPDATE: {next_checkpoint_x}, {next_checkpoint_y}", file=sys.stderr)
 
         # Calcul de la position cible
-            target_x, target_y = calc_target_position(x, y, next_checkpoint_x, next_checkpoint_y, checkpoint_radius)
-            target_x, target_y = adjust_target_position(target_x, target_y, speed, speed_direction)
-            target_distance = distance(x, y, target_x, target_y)
+        target_x, target_y = calc_target_position(x, y, next_checkpoint_x, next_checkpoint_y, checkpoint_radius)
+        target_x, target_y = adjust_target_position(target_x, target_y, speed, speed_direction)
+        target_distance = distance(x, y, target_x, target_y)
         
         # Normalize pod_angle to [-180, 180] range
         if pod_angle > 180:
@@ -129,26 +119,26 @@ while True:
         next_checkpoint_angle = math.degrees(angle_to_checkpoint) - pod_angle
 
         # Gestion du boost ou de la puissance
-        if is_opponent_close(x, y, opponent_positions) and next_checkpoint_dist < 1000:
-            boost = "SHIELD"
-        elif (i == 0 or while_count > BOOST_WAIT) and abs(next_checkpoint_angle) < 2 and target_distance > 4000 and boost_available[i]:
+        if (i == 0 or while_count > BOOST_WAIT) and abs(next_checkpoint_angle) < 2 and target_distance > 6000 and boost_available[i]:
             boost = "BOOST"
             boost_available[i] = False
+        elif abs(next_checkpoint_angle) < 20:
+            boost = "100"
         elif abs(next_checkpoint_angle) < 45:
             boost = "100"
-        elif abs(next_checkpoint_angle) < 65:
-            boost = "66"
         elif abs(next_checkpoint_angle) < 90:
-            boost = "0"
+            boost = "100"
+        elif abs(next_checkpoint_angle) < 135:
+            boost = "20"
         else:
             boost = "0"
 
         # Affichage des informations de debug
-        print(f"--- POD {i + 1} INFO --- Position: ({x}, {y}), Speed: {speed}", file=sys.stderr)
-        print(f"Speed direction: {speed_direction}", file=sys.stderr)
+        print(f"--- POD {i + 1} INFO ---", file=sys.stderr)
+        print(f"Position: ({x}, {y}), Speed: {speed} | Speed direction: {speed_direction}", file=sys.stderr)
         print(f"Next checkpoint: ({next_checkpoint_x}, {next_checkpoint_y})", file=sys.stderr)
         print(f"Next checkpoint distance: {next_checkpoint_dist}, Threshold: {threshold}", file=sys.stderr)
-        print(f"Target position: ({int(target_x)}, {int(target_y)}), Distance: {target_distance}", file=sys.stderr)
+        print(f"Target position: ({int(target_x)}, {int(target_y)})", file=sys.stderr)
         print(f"Boost: {boost}", file=sys.stderr)
         print(f"Angles, pod to checkpoint: {pod_angle}, checkpoint to target: {next_checkpoint_angle}", file=sys.stderr)
 
